@@ -23,7 +23,7 @@ skip Pages and just use the weekly summary email plus Export CSV.
    ```
    Sign in, approve the scopes, and copy the three printed values.
 5. **GitHub secrets**: repo, Settings, Secrets and variables, Actions, add `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET`, `GOOGLE_REFRESH_TOKEN`.
-6. **First run**: Actions tab, "Weekly job-search refresh", Run workflow. Set `LOOKBACK_DAYS` higher (e.g. 90) in the workflow for this first run to backfill, then set it back to 14.
+6. **First run**: Actions tab, "Weekly job-search refresh", Run workflow. Enter a higher "lookback days" value (e.g. 90) in the Run workflow form to backfill. Scheduled runs scan the last 14 days.
 
 After that it runs every Monday at 13:00 UTC (edit the cron line to change it).
 
