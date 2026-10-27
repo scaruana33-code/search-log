@@ -24,8 +24,8 @@ jobs:
       - name: Sync Gmail and email the summary
         run: python scripts/sync_gmail.py
         env:
-          GOOGLE_CLIENT_ID: ${{ secrets.GOOGLE_CLIENT_ID }}
-          GOOGLE_CLIENT_SECRET: ${{ secrets.GOOGLE_CLIENT_SECRET }}
+          GOOGLE_CLIENT_ID: ${{ 175978392320-hs8u5fn8pp4d06tcok6jlo3722jchivn.apps.googleusercontent.com }}
+          GOOGLE_CLIENT_SECRET: ${{ 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 }}
           GOOGLE_REFRESH_TOKEN: ${{ secrets.GOOGLE_REFRESH_TOKEN }}
           LOOKBACK_DAYS: ${{ inputs.lookback_days || '14' }}
       - name: Commit updated data
