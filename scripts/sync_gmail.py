@@ -1,7 +1,7 @@
 """Weekly Gmail sync: detect job-search progress, update data/applications.json,
 and email yourself a summary. Classification is keyword-based, so treat it as a
 good first pass and correct anything odd in the dashboard."""
-import base64, datetime as dt, hashlib, json, os, re
+import base64, datetime as dt, hashlib, json, os, re, time
 from email.mime.text import MIMEText
 from email.utils import parseaddr
 from pathlib import Path
@@ -149,7 +149,11 @@ def main():
         if not token or len(ids) >= 500:
             break
 
-    msgs = [gmail.users().messages().get(userId="me", id=i, format="full").execute() for i in ids]
+    # Pace the reads and retry with backoff: a 90-day backfill can trip Gmail's per-user rate limit.
+    msgs = []
+    for i in ids:
+        msgs.append(gmail.users().messages().get(userId="me", id=i, format="full").execute(num_retries=6))
+        time.sleep(0.1)
     msgs.sort(key=lambda m: int(m["internalDate"]))
 
     for m in msgs:
