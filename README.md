@@ -32,6 +32,8 @@ After that it runs every Monday at 13:00 UTC (edit the cron line to change it).
 - Source: LinkedIn emails are tagged `linkedin`; a human interview email with no prior application is tagged `recruiter`; everything else is `ats`. **Networking can't be detected from email**, so change those manually.
 - A rejection never overwrites a reached interview stage, so interview rounds stay counted.
 - Company and role are parsed from subjects and sender names; odd formats can come out wrong or as "Unknown role".
-- LinkedIn is only seen through its Gmail notifications, not its site.
+- LinkedIn is only seen through its application-update emails (`jobs-noreply@linkedin.com`). InMail, newsletters and job alerts are ignored, so a recruiter who reaches you only by InMail needs adding by hand.
+- Your own sent mail and Google Calendar invites are skipped so they don't create duplicate rows.
+- Stage rules have tests: `python -m unittest discover scripts`.
 - Rows you first imported from CSV may duplicate pipeline rows if the applied dates differ slightly.
 - Your Gmail credentials live only in GitHub Actions secrets.

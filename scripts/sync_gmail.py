@@ -19,13 +19,17 @@ RANK = {"applied": 0, "screen": 1, "round1": 2, "round2": 3, "round3": 4, "final
 INTERVIEW = ["screen", "round1", "round2", "round3", "final"]
 ATS_DOMAINS = ("greenhouse", "lever.co", "ashby", "workday", "icims", "smartrecruiters",
                "jobvite", "taleo", "dayforce", "successfactors", "workable", "bamboohr")
+# LinkedIn sends application updates from this address; its other mail (InMail, newsletters,
+# job alerts) mentions "on-site" roles and interviews that aren't yours.
+LINKEDIN_JOBS = "jobs-noreply@linkedin.com"
+SKIP_SENDERS = ("calendar-notification@google.com",)
 NOISE = re.compile(r"\b(careers?|recruiting|talent( acquisition)?|jobs?|hr|no-?reply|team|notifications?|hiring)\b", re.I)
 
 QUERY = (
     'newer_than:{d}d (subject:(application OR applying OR "thank you for applying" OR interview '
     'OR "phone screen" OR "next steps" OR offer OR "your candidacy" OR "your application") '
     'OR from:(greenhouse.io OR lever.co OR ashbyhq.com OR myworkday.com OR icims.com '
-    'OR smartrecruiters.com OR jobvite.com OR linkedin.com))'
+    'OR smartrecruiters.com OR jobvite.com OR jobs-noreply@linkedin.com))'
 )
 
 
@@ -36,7 +40,7 @@ def classify(text: str):
     if re.search(r"unfortunately|not (be )?moving forward|decided to (move|proceed)[a-z ]* with (other|another)"
                  r"|no longer (available|under consideration)|regret to inform|will not be (moving|proceeding)", t):
         return "rejected"
-    if re.search(r"final (round|interview)|on-?site|panel interview|super ?day", t):
+    if re.search(r"final (round|interview)|on-?site interview|interview(ing)? on-?site|panel interview|super ?day", t):
         return "final"
     if re.search(r"(third|3rd) (round|interview)|round 3", t):
         return "round3"
@@ -53,6 +57,13 @@ def classify(text: str):
     return None
 
 
+def skip_sender(addr, me):
+    a = addr.lower()
+    if a == me.lower() or a in SKIP_SENDERS:
+        return True   # your own replies and calendar invites would add duplicate rows
+    return "linkedin.com" in a and a != LINKEDIN_JOBS
+
+
 def body_text(payload):
     parts = [payload] + payload.get("parts", [])
     out = []
@@ -61,7 +72,9 @@ def body_text(payload):
         parts.extend(p.get("parts", []))
         if p.get("mimeType") == "text/plain" and p.get("body", {}).get("data"):
             out.append(base64.urlsafe_b64decode(p["body"]["data"]).decode("utf-8", "ignore"))
-    return " ".join(out)[:4000]
+    # The opening carries the message; later text is often a job description or footer
+    # ("this role is on-site", "unfortunately we can't reply to this inbox").
+    return " ".join(out)[:1500]
 
 
 def company_role(subject, sender_name, sender_addr):
@@ -136,6 +149,7 @@ def main():
                         client_secret=os.environ["GOOGLE_CLIENT_SECRET"],
                         token_uri="https://oauth2.googleapis.com/token", scopes=SCOPES)
     gmail = build("gmail", "v1", credentials=creds, cache_discovery=False)
+    me = gmail.users().getProfile(userId="me").execute()["emailAddress"]
 
     doc = json.loads(DATA.read_text()) if DATA.exists() else {"items": []}
     apps = doc["items"] if isinstance(doc, dict) else doc
@@ -160,6 +174,8 @@ def main():
         h = {x["name"].lower(): x["value"] for x in m["payload"]["headers"]}
         subject = h.get("subject", "")
         name, addr = parseaddr(h.get("from", ""))
+        if skip_sender(addr, me):
+            continue
         stage = classify(subject + " " + m.get("snippet", "") + " " + body_text(m["payload"]))
         if not stage:
             continue
@@ -177,7 +193,6 @@ def main():
     print(f"Scanned {len(msgs)} messages; {len(apps)} applications tracked.")
 
     if SEND_SUMMARY:
-        me = gmail.users().getProfile(userId="me").execute()["emailAddress"]
         mail = MIMEText(summary(apps))
         mail["to"], mail["from"], mail["subject"] = me, me, "Your weekly job-search summary"
         raw = base64.urlsafe_b64encode(mail.as_bytes()).decode()
