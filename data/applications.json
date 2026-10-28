@@ -1,5 +1,5 @@
 {
- "updated": "2026-10-28T13:26:40.217828+00:00",
+ "updated": "2026-10-28T22:01:27.927903+00:00",
  "items": [
   {
    "id": "7adeef4b",
@@ -1116,6 +1116,15 @@
    "dateApplied": "2026-10-26",
    "stage": "rejected",
    "stageDate": "2026-10-26"
+  },
+  {
+   "id": "33ccee99",
+   "company": "Moody's  Attraction",
+   "role": "AVP Talent Intelligence Data and AI",
+   "source": "ats",
+   "dateApplied": "2026-10-28",
+   "stage": "rejected",
+   "stageDate": "2026-10-28"
   }
  ]
 }
