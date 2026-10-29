@@ -1,5 +1,5 @@
 {
- "updated": "2026-10-28T22:01:27.927903+00:00",
+ "updated": "2026-10-29T13:21:31.923077+00:00",
  "items": [
   {
    "id": "7adeef4b",
@@ -1125,6 +1125,15 @@
    "dateApplied": "2026-10-28",
    "stage": "rejected",
    "stageDate": "2026-10-28"
+  },
+  {
+   "id": "798d61f6",
+   "company": "Affirm",
+   "role": "Senior Program Manager I",
+   "source": "ats",
+   "dateApplied": "2026-10-29",
+   "stage": "applied",
+   "stageDate": null
   }
  ]
 }
