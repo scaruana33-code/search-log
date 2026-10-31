@@ -1,5 +1,5 @@
 {
- "updated": "2026-10-30T23:45:45.869972+00:00",
+ "updated": "2026-10-31T23:46:12.996445+00:00",
  "items": [
   {
    "id": "7adeef4b",
@@ -1132,6 +1132,15 @@
    "role": "Senior Program Manager I",
    "source": "ats",
    "dateApplied": "2026-10-29",
+   "stage": "applied",
+   "stageDate": null
+  },
+  {
+   "id": "8226314b",
+   "company": "NATIONAL GRID UK LIMITED",
+   "role": "Unknown role",
+   "source": "ats",
+   "dateApplied": "2026-10-31",
    "stage": "applied",
    "stageDate": null
   }
