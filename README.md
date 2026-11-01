@@ -27,6 +27,13 @@ skip Pages and just use the weekly summary email plus Export CSV.
 
 After that it runs every Monday at 13:00 UTC (edit the cron line to change it).
 
+## Your own list and LinkedIn's Archived tab
+LinkedIn's Job Tracker has no API and isn't in LinkedIn's data export, so the refresh can't read it, including the Archived tab. Keep your real list in `data/manual.csv`:
+1. In the dashboard, set each archived job's **Outcome**: Ghosted (never heard back), Not moving forward, or No longer accepting. If you're still interviewing, leave Outcome as "Still active" and put it in **Notes**. A note like "still interviewing" also keeps the row active.
+2. Click **Export CSV**, then upload the file to the `data` folder on GitHub as `manual.csv`, replacing the old one.
+
+Rows in `manual.csv` are locked. The refresh never deletes them or changes their stage, outcome or notes. It only adds email rows for applications newer than the newest one in your list.
+
 ## How it works and its limits
 - Classification is keyword-based (confirmation, screen, round 1/2/3, final, offer, rejection). It is a good first pass, not perfect. Spot-check new rows.
 - Source: LinkedIn emails are tagged `linkedin`; a human interview email with no prior application is tagged `recruiter`; everything else is `ats`. **Networking can't be detected from email**, so change those manually.
