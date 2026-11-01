@@ -1,7 +1,9 @@
 """Tests for the email stage rules. Run: python -m unittest discover scripts"""
+import tempfile
 import unittest
+from pathlib import Path
 
-from sync_gmail import classify, skip_sender
+from sync_gmail import classify, load_manual, merge_manual, skip_sender, upsert
 
 ME = "me@example.com"
 
@@ -58,6 +60,48 @@ class SkipSenderTest(unittest.TestCase):
     def test_employers(self):
         self.assertFalse(skip_sender("no-reply@us.greenhouse-mail.io", ME))
         self.assertFalse(skip_sender("breanah.alviz@pimco.com", ME))
+
+
+MANUAL_CSV = """company,role,source,dateApplied,stage,stageDate,outcome,notes,peak
+Con Edison,IT Vendor Manager,ats,10/13/2026,1st round,10/20/2026,ghosted,still interviewing per recruiter,
+NY Times,Systems Analyst,ats,9/23/2026,rejected,10/14/2026,,,round2
+Acme,PM,linkedin,9/01/2026,applied,,never heard back,,
+Globex,Lead,ats,10/01/2026,not moving forward,10/05/2026,,,screen
+"""
+
+
+class ManualListTest(unittest.TestCase):
+    def setUp(self):
+        d = tempfile.TemporaryDirectory()
+        self.addCleanup(d.cleanup)
+        path = Path(d.name) / "manual.csv"
+        path.write_text(MANUAL_CSV)
+        self.rows = {r["company"]: r for r in load_manual(path)}
+
+    def test_archived_but_still_interviewing_stays_active(self):
+        r = self.rows["Con Edison"]
+        self.assertEqual((r["stage"], r["outcome"], r["dateApplied"]), ("round1", None, "2026-10-13"))
+
+    def test_outcomes_keep_the_furthest_stage(self):
+        self.assertEqual((self.rows["NY Times"]["stage"], self.rows["NY Times"]["outcome"]), ("round2", "rejected"))
+        self.assertEqual((self.rows["Acme"]["stage"], self.rows["Acme"]["outcome"]), ("applied", "ghosted"))
+        self.assertEqual((self.rows["Globex"]["stage"], self.rows["Globex"]["outcome"]), ("screen", "disqualified"))
+
+    def test_merge_keeps_your_rows_and_newer_email_rows(self):
+        email = [
+            {"company": "Con Edison Inc", "role": "Unknown role", "dateApplied": "2026-10-14", "stage": "applied"},
+            {"company": "Myworkday", "role": "Next Steps", "dateApplied": "2026-09-05", "stage": "applied"},
+            {"company": "Newco", "role": "PM", "dateApplied": "2026-10-30", "stage": "applied"},
+        ]
+        merged = merge_manual(email, list(self.rows.values()))
+        self.assertEqual(sorted(a["company"] for a in merged), ["Acme", "Con Edison", "Globex", "NY Times", "Newco"])
+
+    def test_email_never_changes_your_row(self):
+        apps = list(self.rows.values())
+        upsert(apps, "Con Edison", "", "ats", "2026-10-30", "rejected")
+        upsert(apps, "ConEdison", "IT Vendor Manager", "ats", "2026-10-30", "offer")
+        self.assertEqual(self.rows["Con Edison"]["stage"], "round1")
+        self.assertIsNone(self.rows["Con Edison"]["outcome"])
 
 
 if __name__ == "__main__":

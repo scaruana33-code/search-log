@@ -179,6 +179,16 @@
       </select>
     </div>
     <div class="field"><label>Stage date</label><input id="f_stagedate" type="date"></div>
+    <div class="field"><label>Outcome</label>
+      <select id="f_outcome">
+        <option value="">Still active</option>
+        <option value="rejected">Rejected</option>
+        <option value="ghosted">Ghosted — never heard back</option>
+        <option value="disqualified">Not moving forward</option>
+        <option value="closed">No longer accepting applications</option>
+      </select>
+    </div>
+    <div class="field"><label>Notes</label><input id="f_notes" placeholder="e.g. still interviewing"></div>
     <div class="modal-actions">
       <button class="btn" id="cancelBtn">Cancel</button>
       <button class="btn primary" id="saveBtn">Save</button>
@@ -191,6 +201,8 @@ const SOURCES = {ats:{label:'ATS',color:'var(--ats)'},linkedin:{label:'LinkedIn'
 const STAGE_ORDER = ['applied','screen','round1','round2','round3','final','offer'];
 const STAGE_LABEL = {applied:'Applied',screen:'Screen',round1:'Round 1',round2:'Round 2',round3:'Round 3',final:'Final',offer:'Offer',rejected:'Rejected'};
 const INTERVIEW_STAGES = ['screen','round1','round2','round3','final'];
+// How an application ended, kept apart from the furthest stage reached (LinkedIn's Archived tab).
+const OUTCOME_LABEL = {rejected:'Rejected',ghosted:'Ghosted',disqualified:'Not moving forward',closed:'No longer accepting'};
 
 let apps = [];
 
@@ -351,12 +363,14 @@ function renderTable(){
   const sorted = [...apps].sort((a,b)=> b.dateApplied.localeCompare(a.dateApplied));
   body.innerHTML = sorted.map(a=>{
     const src = SOURCES[a.source];
-    const stageColor = a.stage==='offer'?'var(--good)':a.stage==='rejected'?'var(--bad)':'var(--muted)';
+    const ended = a.outcome || (a.stage==='rejected' ? 'rejected' : '');
+    const stageColor = a.stage==='offer'?'var(--good)':ended?'var(--bad)':'var(--muted)';
+    const reached = ended && a.stage!=='rejected' && a.stage!=='applied' ? ` <span style="color:var(--muted)">after ${STAGE_LABEL[a.stage]}</span>` : '';
     return `<tr>
       <td><strong>${esc(a.company)}</strong><br><span style="color:var(--muted);font-size:12px">${esc(a.role)}</span></td>
       <td><span class="tag mono" style="color:${src.color};background:${src.color}22">${src.label}</span></td>
       <td class="mono" style="color:var(--muted)">${a.dateApplied}</td>
-      <td><span class="mono" style="color:${stageColor}">${STAGE_LABEL[a.stage]}</span></td>
+      <td><span class="mono" style="color:${stageColor}">${ended ? OUTCOME_LABEL[ended] : STAGE_LABEL[a.stage]}</span>${reached}${a.notes?`<br><span style="color:var(--muted);font-size:12px">${esc(a.notes)}</span>`:''}</td>
       <td><div class="row-actions"><button class="icon-btn" onclick="removeApp('${a.id}')" title="Remove">✕</button></div></td>
     </tr>`;
   }).join('');
@@ -378,7 +392,7 @@ window.removeApp = function(id){
 
 const modalBg=document.getElementById('modalBg');
 document.getElementById('addBtn').onclick=()=>{
-  ['f_company','f_role','f_stagedate'].forEach(id=>document.getElementById(id).value='');
+  ['f_company','f_role','f_stagedate','f_notes','f_outcome'].forEach(id=>document.getElementById(id).value='');
   document.getElementById('f_source').value='ats';
   document.getElementById('f_stage').value='applied';
   document.getElementById('f_date').value=new Date().toISOString().slice(0,10);
@@ -395,11 +409,22 @@ document.getElementById('saveBtn').onclick=()=>{
     source:document.getElementById('f_source').value,
     dateApplied:document.getElementById('f_date').value||new Date().toISOString().slice(0,10),
     stage,
-    stageDate: stage==='applied'? null : (document.getElementById('f_stagedate').value||new Date().toISOString().slice(0,10))
+    stageDate: stage==='applied'? null : (document.getElementById('f_stagedate').value||new Date().toISOString().slice(0,10)),
+    outcome: document.getElementById('f_outcome').value || null,
+    notes: document.getElementById('f_notes').value.trim()
   });
   modalBg.classList.remove('open');
   renderAll(); persist();
 };
+
+function isoDate(s){
+  s=(s||'').trim();
+  if(/^\d{4}-\d{2}-\d{2}$/.test(s)) return s;
+  const m=s.match(/^(\d{1,2})\/(\d{1,2})\/(\d{2,4})$/);
+  if(!m) return null;
+  const y=m[3].length===2?'20'+m[3]:m[3];
+  return `${y}-${m[1].padStart(2,'0')}-${m[2].padStart(2,'0')}`;
+}
 
 function parseCSV(text){
   const lines = text.split(/\r?\n/).filter(l=>l.trim().length);
@@ -417,9 +442,11 @@ function parseCSV(text){
   };
   const header = splitLine(lines[0]).map(h=>h.toLowerCase());
   const idx = k => header.indexOf(k);
-  const iCompany=idx('company'), iRole=idx('role'), iSource=idx('source'), iDate=idx('dateapplied'), iStage=idx('stage'), iStageDate=idx('stagedate');
+  const iCompany=idx('company'), iRole=idx('role'), iSource=idx('source'), iDate=idx('dateapplied'), iStage=idx('stage'), iStageDate=idx('stagedate'),
+        iOutcome=idx('outcome'), iNotes=idx('notes'), iPeak=idx('peak');
   const srcMap={ats:'ats','ats / careers site':'ats','company site':'ats',linkedin:'linkedin',networking:'networking',referral:'networking',recruiter:'recruiter','recruiter-initiated':'recruiter'};
-  const stageMap={applied:'applied',screen:'screen','recruiter screen':'screen',round1:'round1','1st round':'round1','phone screen':'round1',round2:'round2','2nd round':'round2',round3:'round3','3rd round':'round3',final:'final',onsite:'final',offer:'offer',rejected:'rejected'};
+  const stageMap={applied:'applied',screen:'screen','recruiter screen':'screen',round1:'round1','1st round':'round1','phone screen':'round1',round2:'round2','2nd round':'round2',round3:'round3','3rd round':'round3',final:'final',onsite:'final',offer:'offer',rejected:'rejected',
+    ghosted:'ghosted','never heard back':'ghosted',disqualified:'disqualified','not moving forward':'disqualified',closed:'closed','no longer accepting':'closed'};
   const rows=[];
   for(let i=1;i<lines.length;i++){
     const cells = splitLine(lines[i]);
@@ -428,10 +455,16 @@ function parseCSV(text){
     const role = iRole>=0? cells[iRole] : cells[1]||'';
     if(!company) continue;
     const source = srcMap[(iSource>=0?cells[iSource]:'ats').toLowerCase()] || 'ats';
-    const dateApplied = iDate>=0 && cells[iDate] ? cells[iDate] : new Date().toISOString().slice(0,10);
-    const stage = stageMap[(iStage>=0?cells[iStage]:'applied').toLowerCase()] || 'applied';
-    const stageDate = iStageDate>=0 && cells[iStageDate] ? cells[iStageDate] : (stage==='applied'? null : dateApplied);
-    rows.push({id:uid(),company,role,source,dateApplied,stage,stageDate});
+    const dateApplied = isoDate(iDate>=0 ? cells[iDate] : '') || new Date().toISOString().slice(0,10);
+    let stage = stageMap[(iStage>=0?cells[iStage]:'applied').toLowerCase()] || 'applied';
+    let outcome = stageMap[(iOutcome>=0?cells[iOutcome]:'').toLowerCase()] || null;
+    if(OUTCOME_LABEL[stage]){ outcome = outcome || stage; stage = stage==='rejected' ? 'rejected' : 'applied'; }
+    const peak = stageMap[(iPeak>=0?cells[iPeak]:'').toLowerCase()];
+    if(peak in RANK && rankOf(peak)>rankOf(stage)) stage = peak;
+    if(!OUTCOME_LABEL[outcome]) outcome = null;
+    const stageDate = isoDate(iStageDate>=0 ? cells[iStageDate] : '') || (stage==='applied'? null : dateApplied);
+    const notes = iNotes>=0 ? cells[iNotes] : '';
+    rows.push({id:uid(),company,role,source,dateApplied,stage,stageDate,outcome,notes});
   }
   return rows;
 }
@@ -461,6 +494,7 @@ function mergeApps(base, incoming){
   incoming.forEach(n=>{
     const cur=map.get(keyOf(n));
     if(!cur){ out.push(n); map.set(keyOf(n),n); return; }
+    if(n.locked){ Object.assign(cur, n); return; }   // your manual.csv row wins
     const advance = rankOf(n.stage)>rankOf(cur.stage) || (n.stage==='rejected' && cur.stage==='applied');
     if(advance){ cur.stage=n.stage; cur.stageDate=n.stageDate; }
   });
@@ -469,8 +503,8 @@ function mergeApps(base, incoming){
 
 document.getElementById('exportBtn').onclick=()=>{
   const q=v=>'"'+String(v==null?'':v).replace(/"/g,'""')+'"';
-  const lines=apps.map(a=>[a.company,a.role,a.source,a.dateApplied,a.stage,a.stageDate||''].map(q).join(','));
-  const blob=new Blob(['company,role,source,dateApplied,stage,stageDate\n'+lines.join('\n')],{type:'text/csv'});
+  const lines=apps.map(a=>[a.company,a.role,a.source,a.dateApplied,a.stage,a.stageDate||'',a.outcome||'',a.notes||''].map(q).join(','));
+  const blob=new Blob(['company,role,source,dateApplied,stage,stageDate,outcome,notes\n'+lines.join('\n')],{type:'text/csv'});
   const url=URL.createObjectURL(blob);
   const el=document.createElement('a');
   el.href=url; el.download='search-log-'+new Date().toISOString().slice(0,10)+'.csv';
@@ -489,7 +523,16 @@ async function init(){
     if(res.ok){
       const j = await res.json();
       const items = Array.isArray(j) ? j : (j.items||[]);
-      if(items.length){ apps = mergeApps(apps, items); persist(); renderAll(); }
+      if(items.length){
+        // manual.csv is the truth up to its newest application: drop older rows kept in this
+        // browser (earlier email copies), keep anything newer you added here.
+        const locked = items.filter(a=>a.locked);
+        if(locked.length){
+          const cutoff = locked.reduce((m,a)=>a.dateApplied>m?a.dateApplied:m,'');
+          apps = apps.filter(a=>(isoDate(a.dateApplied)||'')>cutoff);
+        }
+        apps = mergeApps(apps, items); persist(); renderAll();
+      }
       if(j.updated) document.querySelector('.sub').textContent='Pipeline synced '+j.updated.slice(0,10)+' · weekly conversion';
     }
   }catch(e){}

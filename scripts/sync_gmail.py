@@ -1,7 +1,7 @@
 """Weekly Gmail sync: detect job-search progress, update data/applications.json,
 and email yourself a summary. Classification is keyword-based, so treat it as a
 good first pass and correct anything odd in the dashboard."""
-import base64, datetime as dt, hashlib, json, os, re, time
+import base64, csv, datetime as dt, hashlib, json, os, re, time
 from email.mime.text import MIMEText
 from email.utils import parseaddr
 from pathlib import Path
@@ -10,6 +10,9 @@ from google.oauth2.credentials import Credentials
 from googleapiclient.discovery import build
 
 DATA = Path(__file__).resolve().parent.parent / "data" / "applications.json"
+# Your own list (e.g. the dashboard's Export CSV). Its rows are locked: the refresh never
+# deletes them or changes their stage, outcome or notes.
+MANUAL = DATA.with_name("manual.csv")
 LOOKBACK_DAYS = int(os.environ.get("LOOKBACK_DAYS", "14"))
 SEND_SUMMARY = os.environ.get("SEND_SUMMARY", "1") == "1"
 SCOPES = ["https://www.googleapis.com/auth/gmail.readonly",
@@ -17,6 +20,19 @@ SCOPES = ["https://www.googleapis.com/auth/gmail.readonly",
 
 RANK = {"applied": 0, "screen": 1, "round1": 2, "round2": 3, "round3": 4, "final": 5, "offer": 6}
 INTERVIEW = ["screen", "round1", "round2", "round3", "final"]
+# How an application ended, kept apart from the furthest stage so interview rounds stay counted.
+# ghosted = LinkedIn "never heard back", disqualified = "not moving forward",
+# closed = "no longer accepting applications".
+OUTCOMES = ("rejected", "ghosted", "disqualified", "closed")
+STAGE_ALIASES = {
+    "recruiter screen": "screen", "phone screen": "round1", "1st round": "round1", "first round": "round1",
+    "2nd round": "round2", "second round": "round2", "3rd round": "round3", "third round": "round3",
+    "onsite": "final", "final round": "final",
+    "never heard back": "ghosted", "no response": "ghosted",
+    "not moving forward": "disqualified", "disqualified": "disqualified",
+    "no longer accepting": "closed", "no longer accepting applications": "closed", "archived": "closed",
+}
+STILL_ACTIVE = re.compile(r"still (interviewing|in process|active)|in progress|interviewing", re.I)
 ATS_DOMAINS = ("greenhouse", "lever.co", "ashby", "workday", "icims", "smartrecruiters",
                "jobvite", "taleo", "dayforce", "successfactors", "workable", "bamboohr")
 # LinkedIn sends application updates from this address; its other mail (InMail, newsletters,
@@ -100,13 +116,96 @@ def make_id(company, role, date):
     return hashlib.md5(f"{company}|{role}|{date}".lower().encode()).hexdigest()[:8]
 
 
+def norm_company(name):
+    n = re.sub(r"[^a-z0-9& ]", " ", (name or "").lower())
+    n = re.sub(r"\b(the|inc|llc|ltd|corp|corporation|co|company|group|usa|us|global|headquarters)\b", " ", n)
+    return " ".join(n.split())
+
+
+def norm_stage(value):
+    v = (value or "").strip().lower()
+    v = STAGE_ALIASES.get(v, v)
+    return v if v in RANK or v in OUTCOMES else None
+
+
+def iso_date(value):
+    v = (value or "").strip()
+    for fmt in ("%Y-%m-%d", "%m/%d/%Y", "%m/%d/%y"):
+        try:
+            return dt.datetime.strptime(v, fmt).date().isoformat()
+        except ValueError:
+            pass
+    return None
+
+
+def load_manual(path):
+    """Rows from your own CSV, locked against the email pipeline."""
+    if not path.exists():
+        return []
+    rows = []
+    for r in csv.DictReader(path.read_text(encoding="utf-8-sig").splitlines()):
+        r = {(k or "").strip().lower(): (v or "").strip() for k, v in r.items()}
+        company = r.get("company")
+        if not company:
+            continue
+        stage = norm_stage(r.get("stage")) or "applied"
+        outcome = norm_stage(r.get("outcome"))
+        outcome = outcome if outcome in OUTCOMES else None
+        if stage in OUTCOMES:          # older exports put the outcome in the stage column
+            outcome = outcome or stage
+            stage = None
+        peak = norm_stage(r.get("peak"))
+        if peak in RANK and (stage is None or RANK[peak] > RANK[stage]):
+            stage = peak
+        notes = r.get("notes", "")
+        if outcome and STILL_ACTIVE.search(notes):
+            outcome = None             # archived on LinkedIn, but you're still interviewing
+        applied = iso_date(r.get("dateapplied")) or dt.date.today().isoformat()
+        role = r.get("role") or "Unknown role"
+        rows.append({"id": make_id(company, role, applied), "company": company, "role": role,
+                     "source": r.get("source") or "ats", "dateApplied": applied,
+                     "stage": stage or ("rejected" if outcome == "rejected" else "applied"),
+                     "stageDate": iso_date(r.get("stagedate")) or iso_date(r.get("peakdate")),
+                     "outcome": outcome, "notes": notes, "locked": True})
+    return rows
+
+
+def merge_manual(apps, manual):
+    """Your locked rows, plus email rows for applications newer than your list."""
+    keys = {(norm_company(m["company"]), m["role"].lower()) for m in manual}
+    dates = {}
+    for m in manual:
+        dates.setdefault(norm_company(m["company"]), []).append(dt.date.fromisoformat(m["dateApplied"]))
+    # Your list covers everything up to its newest application, so older email rows are
+    # copies of rows you already have (usually with worse company/role names).
+    cutoff = max((m["dateApplied"] for m in manual), default="")
+    kept = []
+    for a in apps:
+        if a["dateApplied"] <= cutoff:
+            continue
+        if a.get("locked"):
+            continue                   # re-read from the CSV below, so edits there win
+        company = norm_company(a["company"])
+        if (company, a["role"].lower()) in keys:
+            continue                   # same application as one of yours
+        # Email subjects rarely give the exact title, so a same-company row within a month
+        # of one of yours is treated as the same application.
+        d = dt.date.fromisoformat(a["dateApplied"])
+        if any(abs((d - md).days) <= 30 for md in dates.get(company, [])):
+            continue
+        kept.append(a)
+    return kept + manual
+
+
 def upsert(apps, company, role, source, date, stage):
-    same = [a for a in apps if a["company"].lower() == company.lower()]
+    same = [a for a in apps if norm_company(a["company"]) == norm_company(company)]
     match = None
     if role:
         match = next((a for a in same if a["role"].lower() == role.lower()), None)
     elif same:
         match = sorted(same, key=lambda a: a["dateApplied"])[-1]
+    if match and match.get("locked"):
+        return                         # your row: email never overrides it
     if not match:
         entry = {"id": make_id(company, role, date), "company": company, "role": role or "Unknown role",
                  "source": source, "dateApplied": date, "stage": "applied", "stageDate": None}
@@ -152,7 +251,7 @@ def main():
     me = gmail.users().getProfile(userId="me").execute()["emailAddress"]
 
     doc = json.loads(DATA.read_text()) if DATA.exists() else {"items": []}
-    apps = doc["items"] if isinstance(doc, dict) else doc
+    apps = merge_manual(doc["items"] if isinstance(doc, dict) else doc, load_manual(MANUAL))
 
     ids, token = [], None
     while True:
