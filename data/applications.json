@@ -1,5 +1,5 @@
 {
- "updated": "2026-11-01T22:55:27.363157+00:00",
+ "updated": "2026-11-01T23:00:04.543002+00:00",
  "items": [
   {
    "id": "33ccee99",
@@ -34,6 +34,15 @@
    "role": "Unknown role",
    "source": "ats",
    "dateApplied": "2026-11-01",
+   "stage": "applied",
+   "stageDate": null
+  },
+  {
+   "id": "3f84e030",
+   "company": "Myworkday",
+   "role": "applying",
+   "source": "ats",
+   "dateApplied": "2026-10-29",
    "stage": "applied",
    "stageDate": null
   },
@@ -1368,87 +1377,6 @@
    "outcome": null,
    "notes": "",
    "locked": true
-  },
-  {
-   "id": "5c533524",
-   "company": "Paul",
-   "role": "Unknown role",
-   "source": "recruiter",
-   "dateApplied": "2026-10-19",
-   "stage": "round1",
-   "stageDate": "2026-10-19"
-  },
-  {
-   "id": "b68867c9",
-   "company": "MTA Headquarters",
-   "role": "Specialist Software Engineer",
-   "source": "ats",
-   "dateApplied": "2026-10-19",
-   "stage": "applied",
-   "stageDate": null
-  },
-  {
-   "id": "2c0b3a6f",
-   "company": "Nelson, Alanna",
-   "role": "Onsite Interview",
-   "source": "ats",
-   "dateApplied": "2026-10-23",
-   "stage": "rejected",
-   "stageDate": "2026-10-23"
-  },
-  {
-   "id": "11d97f1c",
-   "company": "Instacart",
-   "role": "Thank you for applying for Program Manager Contingent Workforce",
-   "source": "ats",
-   "dateApplied": "2026-10-23",
-   "stage": "rejected",
-   "stageDate": "2026-10-23"
-  },
-  {
-   "id": "dca9552b",
-   "company": "Amazon",
-   "role": "Applying to Amazon!",
-   "source": "ats",
-   "dateApplied": "2026-10-24",
-   "stage": "applied",
-   "stageDate": null
-  },
-  {
-   "id": "437ca89d",
-   "company": "Turing",
-   "role": "your Interest! Next steps for Business Analyst",
-   "source": "recruiter",
-   "dateApplied": "2026-10-24",
-   "stage": "round1",
-   "stageDate": "2026-10-24"
-  },
-  {
-   "id": "7516c91b",
-   "company": "Adp",
-   "role": "your application, Stephen",
-   "source": "ats",
-   "dateApplied": "2026-10-26",
-   "stage": "applied",
-   "stageDate": null
-  },
-  {
-   "id": "bbedae5b",
-   "company": "Horizontal Talent",
-   "role": "your application with Horizontal Talent",
-   "source": "ats",
-   "dateApplied": "2026-10-26",
-   "stage": "rejected",
-   "stageDate": "2026-10-26"
-  },
-  {
-   "id": "3f84e030",
-   "company": "Myworkday",
-   "role": "applying",
-   "source": "ats",
-   "dateApplied": "2026-10-29",
-   "stage": "applied",
-   "stageDate": null
   }
  ]
 }
