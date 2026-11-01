@@ -1,5 +1,5 @@
 {
- "updated": "2026-10-31T23:46:12.996445+00:00",
+ "updated": "2026-11-01T14:08:50.060950+00:00",
  "items": [
   {
    "id": "7adeef4b",
@@ -1141,6 +1141,15 @@
    "role": "Unknown role",
    "source": "ats",
    "dateApplied": "2026-10-31",
+   "stage": "applied",
+   "stageDate": null
+  },
+  {
+   "id": "187af055",
+   "company": "cornell",
+   "role": "Unknown role",
+   "source": "ats",
+   "dateApplied": "2026-11-01",
    "stage": "applied",
    "stageDate": null
   }
