@@ -251,7 +251,8 @@ def main():
     me = gmail.users().getProfile(userId="me").execute()["emailAddress"]
 
     doc = json.loads(DATA.read_text()) if DATA.exists() else {"items": []}
-    apps = merge_manual(doc["items"] if isinstance(doc, dict) else doc, load_manual(MANUAL))
+    manual = load_manual(MANUAL)
+    apps = merge_manual(doc["items"] if isinstance(doc, dict) else doc, manual)
 
     ids, token = [], None
     while True:
@@ -288,6 +289,7 @@ def main():
             source = "ats"
         upsert(apps, company, role, source, date, stage)
 
+    apps = merge_manual(apps, manual)   # drop rows the emails just re-created for dates your list covers
     DATA.write_text(json.dumps({"updated": dt.datetime.now(dt.timezone.utc).isoformat(), "items": apps}, indent=1))
     print(f"Scanned {len(msgs)} messages; {len(apps)} applications tracked.")
 
