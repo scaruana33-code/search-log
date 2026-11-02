@@ -1,5 +1,5 @@
 {
- "updated": "2026-11-01T23:20:26.211828+00:00",
+ "updated": "2026-11-02T00:23:54.629998+00:00",
  "items": [
   {
    "id": "33ccee99",
@@ -43,6 +43,15 @@
    "role": "applying",
    "source": "ats",
    "dateApplied": "2026-10-29",
+   "stage": "applied",
+   "stageDate": null
+  },
+  {
+   "id": "e449753c",
+   "company": "Greenhouse-Mail",
+   "role": "your application for Global Supply Manager",
+   "source": "ats",
+   "dateApplied": "2026-11-02",
    "stage": "applied",
    "stageDate": null
   },
