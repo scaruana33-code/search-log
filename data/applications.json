@@ -1,5 +1,5 @@
 {
- "updated": "2026-11-02T00:45:02.176045+00:00",
+ "updated": "2026-11-02T22:01:09.158093+00:00",
  "items": [
   {
    "id": "33ccee99",
@@ -50,6 +50,24 @@
    "id": "e449753c",
    "company": "Greenhouse-Mail",
    "role": "your application for Global Supply Manager",
+   "source": "ats",
+   "dateApplied": "2026-11-02",
+   "stage": "applied",
+   "stageDate": null
+  },
+  {
+   "id": "d962d49c",
+   "company": "Michael Kors",
+   "role": "Unknown role",
+   "source": "linkedin",
+   "dateApplied": "2026-11-02",
+   "stage": "applied",
+   "stageDate": null
+  },
+  {
+   "id": "e9f8c9a9",
+   "company": "Rachel Harrington",
+   "role": "Amazon application: Status update",
    "source": "ats",
    "dateApplied": "2026-11-02",
    "stage": "applied",
