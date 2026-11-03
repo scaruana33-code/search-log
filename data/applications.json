@@ -1,5 +1,5 @@
 {
- "updated": "2026-11-02T22:01:09.158093+00:00",
+ "updated": "2026-11-03T16:34:52.605428+00:00",
  "items": [
   {
    "id": "33ccee99",
@@ -70,6 +70,15 @@
    "role": "Amazon application: Status update",
    "source": "ats",
    "dateApplied": "2026-11-02",
+   "stage": "applied",
+   "stageDate": null
+  },
+  {
+   "id": "a5c1b761",
+   "company": "Workday",
+   "role": "your application!",
+   "source": "ats",
+   "dateApplied": "2026-11-03",
    "stage": "applied",
    "stageDate": null
   },
