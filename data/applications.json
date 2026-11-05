@@ -1,5 +1,5 @@
 {
- "updated": "2026-11-03T16:34:52.605428+00:00",
+ "updated": "2026-11-05T04:11:18.635628+00:00",
  "items": [
   {
    "id": "33ccee99",
@@ -79,6 +79,24 @@
    "role": "your application!",
    "source": "ats",
    "dateApplied": "2026-11-03",
+   "stage": "applied",
+   "stageDate": null
+  },
+  {
+   "id": "1a3d47d6",
+   "company": "Philo",
+   "role": "applying to Philo!",
+   "source": "ats",
+   "dateApplied": "2026-11-03",
+   "stage": "applied",
+   "stageDate": null
+  },
+  {
+   "id": "dd00f4ab",
+   "company": "Accenture",
+   "role": "Unknown role",
+   "source": "ats",
+   "dateApplied": "2026-11-04",
    "stage": "applied",
    "stageDate": null
   },
