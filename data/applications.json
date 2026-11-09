@@ -1,5 +1,5 @@
 {
- "updated": "2026-11-05T04:28:40.916447+00:00",
+ "updated": "2026-11-09T03:33:19.862568+00:00",
  "items": [
   {
    "id": "33ccee99",
@@ -97,6 +97,60 @@
    "role": "Unknown role",
    "source": "ats",
    "dateApplied": "2026-11-04",
+   "stage": "applied",
+   "stageDate": null
+  },
+  {
+   "id": "639f3abd",
+   "company": "Nelson, Alanna",
+   "role": "Onsite Interview",
+   "source": "recruiter",
+   "dateApplied": "2026-11-04",
+   "stage": "final",
+   "stageDate": "2026-11-04"
+  },
+  {
+   "id": "1272585b",
+   "company": "TMG",
+   "role": "Sr. Manager, Core Business Systems",
+   "source": "ats",
+   "dateApplied": "2026-11-05",
+   "stage": "applied",
+   "stageDate": null
+  },
+  {
+   "id": "a6ff3c2d",
+   "company": "Premier",
+   "role": "applying for the Manager, GPO Delivery and Optimization",
+   "source": "ats",
+   "dateApplied": "2026-11-06",
+   "stage": "applied",
+   "stageDate": null
+  },
+  {
+   "id": "cf77fc7a",
+   "company": "Oliver Wyman",
+   "role": "Unknown role",
+   "source": "linkedin",
+   "dateApplied": "2026-11-06",
+   "stage": "applied",
+   "stageDate": null
+  },
+  {
+   "id": "f3193b90",
+   "company": "MetLife",
+   "role": "applying to the Global Procurement Systems Consultant",
+   "source": "ats",
+   "dateApplied": "2026-11-06",
+   "stage": "applied",
+   "stageDate": null
+  },
+  {
+   "id": "b33e7d4f",
+   "company": "Spring Health",
+   "role": "Applying to Spring Health",
+   "source": "ats",
+   "dateApplied": "2026-11-08",
    "stage": "applied",
    "stageDate": null
   },
