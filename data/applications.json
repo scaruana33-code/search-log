@@ -1,5 +1,5 @@
 {
- "updated": "2026-11-09T03:33:19.862568+00:00",
+ "updated": "2026-11-09T22:47:58.808725+00:00",
  "items": [
   {
    "id": "33ccee99",
@@ -151,6 +151,33 @@
    "role": "Applying to Spring Health",
    "source": "ats",
    "dateApplied": "2026-11-08",
+   "stage": "applied",
+   "stageDate": null
+  },
+  {
+   "id": "01164c0d",
+   "company": "Myworkday",
+   "role": "applying!",
+   "source": "ats",
+   "dateApplied": "2026-11-09",
+   "stage": "applied",
+   "stageDate": null
+  },
+  {
+   "id": "a9f0ae35",
+   "company": "MSG Entertainment Holdings",
+   "role": "applying to MSG Entertainment Holdings, LLC",
+   "source": "ats",
+   "dateApplied": "2026-11-09",
+   "stage": "applied",
+   "stageDate": null
+  },
+  {
+   "id": "bbc34317",
+   "company": "Tata Consultancy Services",
+   "role": "Unknown role",
+   "source": "linkedin",
+   "dateApplied": "2026-11-09",
    "stage": "applied",
    "stageDate": null
   },
