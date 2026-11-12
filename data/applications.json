@@ -1,5 +1,5 @@
 {
- "updated": "2026-11-09T22:47:58.808725+00:00",
+ "updated": "2026-11-12T06:58:13.898594+00:00",
  "items": [
   {
    "id": "33ccee99",
@@ -178,6 +178,24 @@
    "role": "Unknown role",
    "source": "linkedin",
    "dateApplied": "2026-11-09",
+   "stage": "applied",
+   "stageDate": null
+  },
+  {
+   "id": "039b3175",
+   "company": "HelloFresh",
+   "role": "applying to HelloFresh!",
+   "source": "ats",
+   "dateApplied": "2026-11-09",
+   "stage": "applied",
+   "stageDate": null
+  },
+  {
+   "id": "e745cfab",
+   "company": "Oliver Wyman",
+   "role": "Oliver Wyman - Talent Management Lead - New York",
+   "source": "linkedin",
+   "dateApplied": "2026-11-11",
    "stage": "applied",
    "stageDate": null
   },
