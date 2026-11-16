@@ -1,5 +1,5 @@
 {
- "updated": "2026-11-16T01:20:33.917964+00:00",
+ "updated": "2026-11-16T22:39:57.789608+00:00",
  "items": [
   {
    "id": "33ccee99",
@@ -196,6 +196,15 @@
    "role": "Oliver Wyman - Talent Management Lead - New York",
    "source": "linkedin",
    "dateApplied": "2026-11-11",
+   "stage": "applied",
+   "stageDate": null
+  },
+  {
+   "id": "f299585a",
+   "company": "Spring Health",
+   "role": "Vendor & Workforce Operations Lead",
+   "source": "ats",
+   "dateApplied": "2026-11-16",
    "stage": "applied",
    "stageDate": null
   },
